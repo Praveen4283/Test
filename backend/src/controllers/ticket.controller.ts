@@ -2,16 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import { pool, query } from '../config/database';
 import { AppError } from '../utils/errorHandler';
 import { logger } from '../utils/logger';
-import { OpenAI } from 'openai';
 import { v4 as uuidv4 } from 'uuid';
 import ticketService from '../services/ticket.service'; // Import the ticket service
 import fs from 'fs'; // Import fs for cleanup
 import { Multer } from 'multer';
-
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 /**
  * Get all tickets with pagination, filtering, and sorting

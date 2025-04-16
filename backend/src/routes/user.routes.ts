@@ -7,7 +7,7 @@ import { User } from '../models/User';
 import { NotificationPreference } from '../models/NotificationPreference';
 import { DepartmentMember } from '../models/DepartmentMember';
 import { Department } from '../models/Department';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const router = express.Router();
 
