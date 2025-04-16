@@ -447,43 +447,13 @@ export const createTicket = async (
       
       if (process.env.OPENAI_API_KEY) {
         try {
-          // Analyze sentiment
-          const sentimentResponse = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [
-              {
-                role: "system",
-                content: "You are a sentiment analyzer. Rate the sentiment of the following text on a scale from -1.0 (very negative) to 1.0 (very positive). Return only the numeric score."
-              },
-              {
-                role: "user",
-                content: description
-              }
-            ],
-            temperature: 0,
-          });
+          // OpenAI is no longer used
+          // Just set default values for sentiment and summary
+          sentimentScore = 0;
           
-          const sentimentText = sentimentResponse.choices[0]?.message?.content?.trim() || "0";
-          sentimentScore = parseFloat(sentimentText);
-          
-          // Generate summary
+          // Generate summary for long descriptions
           if (description.length > 100) {
-            const summaryResponse = await openai.chat.completions.create({
-              model: "gpt-3.5-turbo",
-              messages: [
-                {
-                  role: "system",
-                  content: "Create a brief 1-2 sentence summary of the following customer service ticket. Focus on the main issue and any key details."
-                },
-                {
-                  role: "user",
-                  content: description
-                }
-              ],
-              temperature: 0.3,
-            });
-            
-            aiSummary = summaryResponse.choices[0]?.message?.content?.trim();
+            aiSummary = "AI summary not available";
           }
         } catch (error) {
           // Log AI error but continue with ticket creation
@@ -756,24 +726,9 @@ export const updateTicket = async (
         // Re-process with AI if description changed
         if (process.env.OPENAI_API_KEY) {
           try {
-            // Analyze sentiment
-            const sentimentResponse = await openai.chat.completions.create({
-              model: "gpt-3.5-turbo",
-              messages: [
-                {
-                  role: "system",
-                  content: "You are a sentiment analyzer. Rate the sentiment of the following text on a scale from -1.0 (very negative) to 1.0 (very positive). Return only the numeric score."
-                },
-                {
-                  role: "user",
-                  content: description
-                }
-              ],
-              temperature: 0,
-            });
-            
-            const sentimentText = sentimentResponse.choices[0]?.message?.content?.trim() || "0";
-            const sentimentScore = parseFloat(sentimentText);
+            // OpenAI is no longer used
+            // Set default values for sentiment and summary
+            const sentimentScore = 0;
             
             updateFields.push(`sentiment_score = $${paramCount}`);
             values.push(sentimentScore);
@@ -781,22 +736,7 @@ export const updateTicket = async (
             
             // Generate summary if description is long
             if (description.length > 100) {
-              const summaryResponse = await openai.chat.completions.create({
-                model: "gpt-3.5-turbo",
-                messages: [
-                  {
-                    role: "system",
-                    content: "Create a brief 1-2 sentence summary of the following customer service ticket. Focus on the main issue and any key details."
-                  },
-                  {
-                    role: "user",
-                    content: description
-                  }
-                ],
-                temperature: 0.3,
-              });
-              
-              const aiSummary = summaryResponse.choices[0]?.message?.content?.trim();
+              const aiSummary = "AI summary not available";
               
               updateFields.push(`ai_summary = $${paramCount}`);
               values.push(aiSummary);
@@ -1060,23 +1000,9 @@ export const addComment = async (
     let sentimentScore = null;
     if (process.env.OPENAI_API_KEY) {
       try {
-        const sentimentResponse = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
-          messages: [
-            {
-              role: "system",
-              content: "You are a sentiment analyzer. Rate the sentiment of the following text on a scale from -1.0 (very negative) to 1.0 (very positive). Return only the numeric score."
-            },
-            {
-              role: "user",
-              content: content
-            }
-          ],
-          temperature: 0,
-        });
-        
-        const sentimentText = sentimentResponse.choices[0]?.message?.content?.trim() || "0";
-        sentimentScore = parseFloat(sentimentText);
+        // OpenAI is no longer used
+        // Set default sentiment score
+        sentimentScore = 0;
       } catch (error) {
         logger.error('Error analyzing sentiment for comment', error);
       }
