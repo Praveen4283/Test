@@ -34,11 +34,12 @@ console.log(`[database.ts] Current __dirname: ${__dirname}`);
 // Create and export the TypeORM AppDataSource
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  username: process.env.DB_USERNAME || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  database: process.env.DB_DATABASE || 'servicedesk',
+  url: process.env.DATABASE_URL,
+  host: !process.env.DATABASE_URL ? (process.env.DB_HOST || 'localhost') : undefined,
+  port: !process.env.DATABASE_URL ? parseInt(process.env.DB_PORT || '5432') : undefined,
+  username: !process.env.DATABASE_URL ? (process.env.DB_USERNAME || 'postgres') : undefined,
+  password: !process.env.DATABASE_URL ? (process.env.DB_PASSWORD || 'postgres') : undefined,
+  database: !process.env.DATABASE_URL ? (process.env.DB_DATABASE || 'servicedesk') : undefined,
   synchronize: false, // Always disabled in production
   logging: process.env.DB_LOGGING === 'true',
   entities: [ // List entities explicitly
@@ -62,7 +63,7 @@ export const AppDataSource = new DataSource({
   migrations: [path.join(__dirname, '../migrations/**/*.js'), path.join(__dirname, '../migrations/**/*.ts')],
   // Adjust subscribers path for production build
   subscribers: [path.join(__dirname, '../subscribers/**/*.js'), path.join(__dirname, '../subscribers/**/*.ts')],
-  ssl: process.env.DB_SSL === 'true' ? {
+  ssl: process.env.DB_SSL === 'true' || process.env.DATABASE_URL ? {
     rejectUnauthorized: false
   } : false
 });
@@ -70,7 +71,12 @@ export const AppDataSource = new DataSource({
 // Legacy pool connection for raw SQL queries (if needed)
 import { Pool } from 'pg';
 
-export const pool = new Pool({
+export const pool = new Pool(process.env.DATABASE_URL ? {
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+} : {
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
   user: process.env.DB_USERNAME || 'postgres',
