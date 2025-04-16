@@ -18,8 +18,7 @@
     "sourceMap": true
   },
   "include": [
-    "src/**/*",
-    "sql/seedOptions.ts"
+    "src/**/*"
   ],
   "exclude": ["node_modules", "dist"]
 } 
