@@ -34,9 +34,9 @@
     # Run the build using npx
     SKIP_PREFLIGHT_CHECK=true GENERATE_SOURCEMAP=false REACT_APP_ENV=production npx react-scripts build
     
-    # Copy the build back to the expected location
-    mkdir -p ../build
-    cp -r build/* ../build/ || echo "Build failed to create output files"
+    # Copy the build back to the expected location (fixed path)
+    mkdir -p /opt/build/repo/frontend/build
+    cp -r build/* /opt/build/repo/frontend/build/ || echo "Build failed to create output files"
   """
 
 [build.environment]
