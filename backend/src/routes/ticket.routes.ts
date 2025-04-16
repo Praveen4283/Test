@@ -19,18 +19,8 @@ import { validateRequest } from '../middleware/validate-request.middleware';
 import { authenticate } from '../middleware/auth.middleware';
 
 // --- Multer Configuration ---
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    console.log('[Multer Destination] Uploads directory:', path.resolve('uploads/')); // Log resolved path
-    cb(null, 'uploads/'); 
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const finalFilename = file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname);
-    console.log('[Multer Filename] Saving file as:', finalFilename); // Log filename
-    cb(null, finalFilename);
-  }
-});
+// Use memory storage for Supabase integration
+const storage = multer.memoryStorage();
 
 const upload = multer({ 
   storage: storage, 

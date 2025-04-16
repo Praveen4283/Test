@@ -27,6 +27,9 @@ import reportRoutes from './routes/report.routes';
 import aiRoutes from './routes/ai.routes';
 import chatbotRoutes from './routes/chatbot.routes';
 
+// Import the Supabase initialization function
+import { initBucket } from './utils/supabase';
+
 // Initialize express app
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -104,6 +107,9 @@ function setupRecurringTasks() {
 // Start server
 const startServer = async () => {
   try {
+    // Initialize Supabase storage bucket
+    await initBucket();
+    
     // Initialize database connection
     await initializeDatabase();
     
@@ -112,14 +118,14 @@ const startServer = async () => {
     
     // Start the server
     app.listen(PORT, () => {
-      logger.info(`Server is running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+      logger.info(`Server running on port ${PORT}`);
     });
     
     // Setup recurring tasks
     setupRecurringTasks();
     
   } catch (error: any) {
-    logger.error(`Failed to start server: ${error.message}`);
+    logger.error(`Error starting server: ${error.message}`);
     process.exit(1);
   }
 };

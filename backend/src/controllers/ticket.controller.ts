@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import ticketService from '../services/ticket.service'; // Import the ticket service
 import fs from 'fs'; // Import fs for cleanup
 import { Multer } from 'multer';
+import { uploadFile } from '../utils/supabase';
 
 /**
  * Get all tickets with pagination, filtering, and sorting
@@ -552,28 +553,45 @@ export const createTicket = async (
       // --- Handle Attachments --- 
       if (files && files.length > 0) {
         const attachmentValues: any[] = [];
-        const attachmentPlaceholders = files.map((file, index) => {
-          const paramIndex = index * 6; // 6 params per file
-          attachmentValues.push(
-            newTicketId, // ticket_id
-            null, // comment_id (null for ticket-level attachments)
-            file.originalname, // file_name
-            file.path, // file_path (relative path from multer)
-            file.mimetype, // file_type
-            file.size, // file_size
-            actualRequesterId // uploaded_by
-          );
-          return `($${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5}, $${paramIndex + 6}, $${paramIndex + 7})`;
-        }).join(',');
+        const attachmentPlaceholders = [];
+
+        // Upload files to Supabase storage and get URLs
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          try {
+            // Upload to Supabase and get public URL
+            const publicUrl = await uploadFile(file, 'tickets', newTicketId);
+            
+            // Add to values for DB insert
+            attachmentValues.push(
+              newTicketId, // ticket_id
+              null, // comment_id (null for ticket-level attachments)
+              file.originalname, // file_name
+              publicUrl, // file_path (now a Supabase URL)
+              file.mimetype, // file_type
+              file.size, // file_size
+              actualRequesterId // uploaded_by
+            );
+            
+            // Create placeholder for this file
+            const paramIndex = i * 7; // 7 params per file
+            attachmentPlaceholders.push(
+              `($${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5}, $${paramIndex + 6}, $${paramIndex + 7})`
+            );
+          } catch (uploadError) {
+            console.error(`[CreateTicket] Error uploading file to Supabase:`, uploadError);
+            throw new AppError('File upload failed', 500);
+          }
+        }
 
         const attachmentQuery = `
           INSERT INTO ticket_attachments (
             ticket_id, comment_id, file_name, file_path, 
             file_type, file_size, uploaded_by
-          ) VALUES ${attachmentPlaceholders}
+          ) VALUES ${attachmentPlaceholders.join(',')}
         `;
         
-        console.log(`[CreateTicket] Attempting to insert ${files.length} attachments for ticket ${newTicketId}. Query: ${attachmentQuery.substring(0, 100)}...`); // Log before DB insert
+        console.log(`[CreateTicket] Attempting to insert ${files.length} attachments for ticket ${newTicketId}. Query: ${attachmentQuery.substring(0, 100)}...`);
         try {
           await client.query(attachmentQuery, attachmentValues);
           console.log(`[CreateTicket] Successfully inserted attachments for ticket ${newTicketId}`); // Log after DB insert
