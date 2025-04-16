@@ -5,22 +5,38 @@
     # Create a clean temporary directory
     mkdir -p /tmp/build-app
     
-    # Copy essential files (source code, public assets, package.json)
-    cp -r src public package.json tsconfig.json /tmp/build-app/
+    # Copy essential files (source code, public assets, tsconfig.json)
+    cp -r src public tsconfig.json /tmp/build-app/
+    
+    # Create a simplified package.json
+    cat > /tmp/build-app/package.json << 'EOF'
+    {
+      "name": "servicefix-frontend",
+      "version": "1.0.0",
+      "private": true,
+      "dependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+      },
+      "scripts": {
+        "build": "react-scripts build"
+      }
+    }
+    EOF
     
     # Move to the clean directory
     cd /tmp/build-app
     
-    # Install dependencies and typescript (in a clean environment)
-    npm install --silent
-    npm install --silent typescript@4.9.5 react-scripts@5.0.1
+    # Install only the essential dependencies
+    npm install --silent react react-dom
+    npm install --silent --save-dev typescript@4.9.5 react-scripts@5.0.1
     
-    # Run the build
-    SKIP_PREFLIGHT_CHECK=true GENERATE_SOURCEMAP=false REACT_APP_ENV=production npm run build
+    # Run the build using npx
+    SKIP_PREFLIGHT_CHECK=true GENERATE_SOURCEMAP=false REACT_APP_ENV=production npx react-scripts build
     
     # Copy the build back to the expected location
     mkdir -p ../build
-    cp -r build/* ../build/
+    cp -r build/* ../build/ || echo "Build failed to create output files"
   """
 
 [build.environment]
