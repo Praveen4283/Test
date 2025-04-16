@@ -71,7 +71,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "GENERATE_SOURCEMAP=false REACT_APP_ENV=production react-scripts build",
-    "netlify-build": "npm ci && ls -la node_modules/.bin && GENERATE_SOURCEMAP=false REACT_APP_ENV=production npx react-scripts build",
+    "netlify-build": "npm ci && npm install typescript --no-save && GENERATE_SOURCEMAP=false REACT_APP_ENV=production npx --no react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint src --ext .ts,.tsx",
