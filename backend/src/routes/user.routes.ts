@@ -8,6 +8,11 @@ import { NotificationPreference } from '../models/NotificationPreference';
 import { DepartmentMember } from '../models/DepartmentMember';
 import { Department } from '../models/Department';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import fs from 'fs/promises';
+import path from 'path';
+import { AppError } from '../utils/errorHandler';
+import { logger } from '../utils/logger';
 
 const router = express.Router();
 
@@ -548,6 +553,71 @@ router.get('/:id/organization', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Error fetching organization:', error);
     return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * @route   DELETE /api/users/:id/avatar
+ * @desc    Delete a user's avatar
+ * @access  Private (Admin)
+ */
+router.delete('/:id/avatar', authenticate, async (req, res, next) => {
+  try {
+    // Authorization: Only Admins can delete avatars for now
+    if (req.user.role !== UserRole.ADMIN) {
+      return next(new AppError('Unauthorized: Only admins can delete avatars', 403));
+    }
+
+    const userId = req.params.id;
+    const userRepository = getRepository(User);
+
+    // Find the user
+    const user = await userRepository.findOne({ where: { id: userId } as any });
+
+    if (!user) {
+      return next(new AppError('User not found', 404));
+    }
+
+    // Check if the user has an avatar URL
+    if (!user.avatarUrl) {
+      return res.status(200).json({ message: 'User does not have an avatar to delete' });
+    }
+
+    const currentAvatarPath = user.avatarUrl;
+
+    // **Important:** Determine the full path to the avatar file.
+    // This assumes avatarUrl stores a path relative to the project root, like '/uploads/avatars/...'
+    // Adjust this logic based on your actual file storage setup.
+    const avatarFilePath = path.join(__dirname, '..', '..', currentAvatarPath);
+    logger.info(`Attempting to delete avatar file at: ${avatarFilePath}`);
+
+
+    // Attempt to delete the file from storage
+    try {
+      await fs.unlink(avatarFilePath);
+      logger.info(`Successfully deleted avatar file: ${avatarFilePath}`);
+    } catch (fileError: any) {
+      // Log the error but continue to update the DB record
+      // Might happen if the DB entry exists but the file is already gone
+      if (fileError.code === 'ENOENT') {
+         logger.warn(`Avatar file not found at path: ${avatarFilePath}, but proceeding to clear DB record.`);
+      } else {
+        logger.error(`Error deleting avatar file ${avatarFilePath}:`, fileError);
+        // Depending on policy, you might want to stop here or still clear the DB record
+        // return next(new AppError('Failed to delete avatar file', 500));
+      }
+    }
+
+    // Update the database record
+    user.avatarUrl = null; // Set to null
+    await userRepository.save(user);
+
+    logger.info(`Successfully cleared avatar URL for user ${userId}`);
+    res.status(200).json({ message: 'Avatar deleted successfully' });
+
+  } catch (error) {
+    logger.error(`Error deleting avatar for user ${req.params.id}:`, error);
+    next(new AppError('Server error while deleting avatar', 500));
   }
 });
 

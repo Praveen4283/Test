@@ -37,7 +37,7 @@ export class User {
   role: UserRole;
 
   @Column({ name: 'avatar_url', type: 'text', nullable: true })
-  avatarUrl: string;
+  avatarUrl: string | null;
 
   @Column({ name: 'is_active', default: true })
   isActive: boolean;

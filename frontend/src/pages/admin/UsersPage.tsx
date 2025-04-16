@@ -173,6 +173,7 @@ interface UserFormData {
   designation?: string;
   is_active?: boolean; // Optional: if admin can set this
   organizationName?: string; // Added for display in 'add' mode
+  avatar_url?: string; // Add avatar_url for potential display/deletion logic
 }
 
 const UsersPage = () => {
@@ -207,6 +208,11 @@ const UsersPage = () => {
   const [currentUser, setCurrentUser] = useState<UserFormData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false); // For form submission state
   // --- End State for Add/Edit Modal --- 
+
+  // --- State for Avatar Delete Confirmation ---
+  const [isAvatarDeleteDialogOpen, setIsAvatarDeleteDialogOpen] = useState(false);
+  const [userToDeleteAvatar, setUserToDeleteAvatar] = useState<UserFormData | null>(null);
+  // --- End State for Avatar Delete Confirmation ---
 
   const { isAuthenticated, user: loggedInUser } = useAuth();
   const { departments } = useTickets();
@@ -453,6 +459,7 @@ const UsersPage = () => {
         designation: user.designation || '',
         is_active: user.is_active,
         organizationName: loggedInUser?.organization?.name || 'Default Organization', // Add organization name in edit mode too
+        avatar_url: user.avatar_url // Include avatar_url when editing
       });
     } else {
       setCurrentUser({
@@ -465,6 +472,7 @@ const UsersPage = () => {
         designation: '',
         is_active: true,
         organizationName: loggedInUser?.organization?.name || 'Default Organization',
+        avatar_url: '',
       });
     }
     setIsModalOpen(true);
@@ -523,6 +531,45 @@ const UsersPage = () => {
     setIsSubmitting(false);
   };
   // --- End Modal Handlers --- 
+
+  // --- Avatar Deletion Handlers ---
+  const openAvatarDeleteConfirm = (user: UserFormData) => {
+    setUserToDeleteAvatar(user);
+    setIsAvatarDeleteDialogOpen(true);
+  };
+
+  const closeAvatarDeleteConfirm = () => {
+    setUserToDeleteAvatar(null);
+    setIsAvatarDeleteDialogOpen(false);
+  };
+
+  const handleAvatarDeleteConfirm = async () => {
+    if (!userToDeleteAvatar || !userToDeleteAvatar.id) return;
+
+    setIsSubmitting(true); // Reuse submitting state to disable buttons
+    closeAvatarDeleteConfirm(); // Close confirmation dialog immediately
+
+    try {
+      // Assume API endpoint exists: DELETE /users/{userId}/avatar
+      await apiClient.delete(`/users/${userToDeleteAvatar.id}/avatar`);
+      addNotification('Avatar deleted successfully', 'success');
+
+      // Refresh user data to show updated avatar status
+      await fetchUsers();
+
+      // If the currently edited user is the one whose avatar was deleted, update its state
+      if (currentUser?.id === userToDeleteAvatar.id) {
+        setCurrentUser(prev => prev ? { ...prev, avatar_url: undefined } : null);
+      }
+
+    } catch (error: any) {
+      console.error('Error deleting avatar:', error);
+      addNotification(error.message || 'Failed to delete avatar', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  // --- End Avatar Deletion Handlers ---
 
   return (
     <Container 
@@ -1030,18 +1077,35 @@ const UsersPage = () => {
                 </Grid>
               )}
               {modalMode === 'edit' && (
-                 <Grid item xs={12}>
-                   <FormControlLabel
-                     control={
-                       <Switch
-                         checked={currentUser?.is_active ?? true}
-                         onChange={handleFormChange}
-                         name="is_active"
+                 <Grid item xs={12} container spacing={2} alignItems="center">
+                   <Grid item xs={currentUser?.avatar_url ? 6 : 12}>
+                     <FormControlLabel
+                       control={
+                         <Switch
+                           checked={currentUser?.is_active ?? true}
+                           onChange={handleFormChange}
+                           name="is_active"
+                           disabled={isSubmitting}
+                         />
+                       }
+                       label="User is Active"
+                     />
+                   </Grid>
+                   {/* Add Delete Avatar Button if avatar exists */}
+                   {currentUser?.avatar_url && (
+                     <Grid item xs={6} sx={{ textAlign: 'right' }}>
+                       <Button
+                         variant="outlined"
+                         color="error"
+                         size="small"
+                         startIcon={<DeleteIcon />}
+                         onClick={() => currentUser && openAvatarDeleteConfirm(currentUser)}
                          disabled={isSubmitting}
-                       />
-                     }
-                     label="User is Active"
-                   />
+                       >
+                         Delete Avatar
+                       </Button>
+                     </Grid>
+                   )}
                  </Grid>
                )}
             </Grid>
@@ -1060,6 +1124,25 @@ const UsersPage = () => {
         </Box>
       </Dialog>
       {/* --- End Add/Edit User Modal --- */} 
+
+      {/* --- Avatar Delete Confirmation Dialog --- */}
+      <Dialog open={isAvatarDeleteDialogOpen} onClose={closeAvatarDeleteConfirm}>
+        <DialogTitle>Confirm Avatar Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete the avatar for {userToDeleteAvatar?.first_name} {userToDeleteAvatar?.last_name}? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={closeAvatarDeleteConfirm} variant="outlined" disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button onClick={handleAvatarDeleteConfirm} variant="contained" color="error" disabled={isSubmitting}>
+            Delete Avatar
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* --- End Avatar Delete Confirmation Dialog --- */}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
