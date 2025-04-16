@@ -1,9 +1,29 @@
 [build]
   base = "frontend"
   publish = "build"
-  command = "npm install --force && npm install typescript@4.9.5 --no-save && GENERATE_SOURCEMAP=false REACT_APP_ENV=production npx --package=react-scripts@5.0.1 react-scripts build"
+  command = """
+    # Create a clean temporary directory
+    mkdir -p /tmp/build-app
+    
+    # Copy essential files (source code, public assets, package.json)
+    cp -r src public package.json tsconfig.json /tmp/build-app/
+    
+    # Move to the clean directory
+    cd /tmp/build-app
+    
+    # Install dependencies and typescript (in a clean environment)
+    npm install --silent
+    npm install --silent typescript@4.9.5 react-scripts@5.0.1
+    
+    # Run the build
+    SKIP_PREFLIGHT_CHECK=true GENERATE_SOURCEMAP=false REACT_APP_ENV=production npm run build
+    
+    # Copy the build back to the expected location
+    mkdir -p ../build
+    cp -r build/* ../build/
+  """
 
 [build.environment]
   NODE_VERSION = "16.20.0"
   NPM_VERSION = "8.19.4"
-  CI = "false" 
+  CI = "false"
