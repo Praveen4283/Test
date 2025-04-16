@@ -6,12 +6,17 @@
     "strict": true,
     "strictPropertyInitialization": false,
     "esModuleInterop": true,
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": [
+      "node", "express", "pg", "bcryptjs", "jsonwebtoken", 
+      "multer", "cors", "morgan", "compression", "nodemailer", "bcrypt"
+    ]
   },
   "include": [
     "src/**/*"
