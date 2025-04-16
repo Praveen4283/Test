@@ -1,7 +1,7 @@
 [build]
   base = "frontend"
   publish = "build"
-  command = "CI= npm install --force && npm install typescript@4.9.5 --no-save && npm run build"
+  command = "CI= npm install --force && npm install -g react-scripts typescript@4.9.5 && react-scripts build"
 
 [build.environment]
   NODE_VERSION = "16.20.0"
