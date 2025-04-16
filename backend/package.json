@@ -2,6 +2,7 @@
   "name": "servicefix-backend",
   "version": "1.0.0",
   "description": "Backend for ServiceFix - AI-Powered Help Desk Solution",
+  "packageManager": "npm@10.8.1",
   "main": "dist/src/index.js",
   "scripts": {
     "start": "set NODE_ENV=production && node dist/src/index.js",
