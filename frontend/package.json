@@ -70,7 +70,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "GENERATE_SOURCEMAP=false REACT_APP_ENV=production react-scripts build",
+    "build": "GENERATE_SOURCEMAP=false REACT_APP_ENV=production npx react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint src --ext .ts,.tsx",
