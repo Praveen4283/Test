@@ -1,7 +1,15 @@
 [build]
   base = "frontend"
   publish = "build"
-  command = "npm ci && npm run build"
+  command = """
+    npm ci && \
+    echo 'Checking for react-scripts...' && \
+    ls -la node_modules/.bin/react-scripts && \
+    echo 'Setting permissions...' && \
+    chmod +x node_modules/.bin/react-scripts && \
+    echo 'Running build script...' && \
+    npm run build
+  """
 
 [build.environment]
   NODE_VERSION = "18.18.0"
