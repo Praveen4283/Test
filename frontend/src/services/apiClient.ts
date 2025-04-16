@@ -372,19 +372,19 @@ class ApiClient {
    * @returns A properly formatted UserDTO object
    */
   private normalizeUserResponse(response: any): UserDTO {
-    let organizationData = undefined;
+    let organizationData: { id: string; name: string } | undefined = undefined;
     
     if (response.organization) {
       // Direct organization object
       organizationData = {
-        id: response.organization.id,
+        id: String(response.organization.id),
         name: response.organization.name
       };
     } else if (response.organizationId || response.organization_id) {
       // We have an organization ID but no organization object
       // Create minimal organization data
       organizationData = {
-        id: response.organizationId || response.organization_id,
+        id: String(response.organizationId || response.organization_id),
         name: 'Loading...' // Placeholder until we can fetch the proper name
       };
     }
