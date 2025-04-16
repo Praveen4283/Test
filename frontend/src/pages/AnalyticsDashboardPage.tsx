@@ -1007,7 +1007,7 @@ const Rating: React.FC<{
   readOnly?: boolean;
   size?: 'small' | 'medium' | 'large';
 }> = ({ value, readOnly = false, size = 'medium' }) => {
-  const stars = [];
+  const stars: React.ReactNode[] = [];
   
   // Convert value to number of filled stars (out of 5)
   for (let i = 1; i <= 5; i++) {
