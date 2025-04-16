@@ -15,6 +15,7 @@ declare global {
         role: string;
         organizationId: string | null; // Allow null for organizationId
       };
+      files?: Express.Multer.File[]; // Add files property from Multer
     }
   }
 }

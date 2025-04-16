@@ -2,24 +2,13 @@ import { Request, Response } from 'express';
 import chatbotService from '../services/chatbot.service';
 import { SenderType } from '../models/ChatMessage';
 
-// Extend Express Request interface to include user potentially added by auth middleware
-interface AuthenticatedRequest extends Request {
-  // Adjust this type to exactly match what your auth middleware attaches
-  user: {
-    id: string;
-    role: string; // Added role based on linter error
-    organizationId: string | null; // Allow null to match middleware
-    // Add other user properties if available from your auth middleware
-  };
-}
-
 class ChatbotController {
   /**
    * @route   POST /api/chat/conversations
    * @desc    Start a new chat conversation
    * @access  Private (Requires authentication to link userId and organizationId)
    */
-  async createConversationHandler(req: AuthenticatedRequest, res: Response): Promise<Response> {
+  async createConversationHandler(req: Request, res: Response): Promise<Response> {
     try {
       // --- Get User ID and Organization ID ---
       // Assuming authentication middleware adds user info to req.user
@@ -74,7 +63,7 @@ class ChatbotController {
    * @desc    Add a message to a conversation
    * @access  Private (Requires authentication)
    */
-  async addMessageHandler(req: AuthenticatedRequest, res: Response): Promise<Response> {
+  async addMessageHandler(req: Request, res: Response): Promise<Response> {
     try {
       const conversationId = req.params.id;
       const { senderType, content, metadata } = req.body as { 
