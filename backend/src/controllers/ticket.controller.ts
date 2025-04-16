@@ -6,6 +6,7 @@ import { OpenAI } from 'openai';
 import { v4 as uuidv4 } from 'uuid';
 import ticketService from '../services/ticket.service'; // Import the ticket service
 import fs from 'fs'; // Import fs for cleanup
+import { Multer } from 'multer';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -428,7 +429,8 @@ export const createTicket = async (
       tags,
     } = req.body;
     
-    const files = req.files as Express.Multer.File[]; // Get uploaded files
+    // Revert back to Express.Multer.File
+    const files = req.files as Express.Multer.File[];
 
     const actualRequesterId = requesterId || req.user.id;
     const statusResult = await query(

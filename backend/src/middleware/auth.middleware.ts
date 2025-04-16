@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { query } from '../config/database';
 import { AppError } from '../utils/errorHandler';
+import * as Multer from 'multer'; // Import multer types
 
 // JWT secret from environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -15,7 +16,7 @@ declare global {
         role: string;
         organizationId: string | null; // Allow null for organizationId
       };
-      files?: Express.Multer.File[]; // Add files property from Multer
+      files?: { [fieldname: string]: Multer.File[] } | Multer.File[] | undefined;
     }
   }
 }
